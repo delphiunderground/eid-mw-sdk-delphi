@@ -29,8 +29,6 @@ uses
   Windows,sysutils,
   PKCS11T;
 
-{$R *.RES}
-
 const
   PKCS11DLL = 'beidpkcs11.dll';
 
@@ -51,7 +49,6 @@ end;
 procedure Beidsdk_PrintValue(pName:CK_CHAR_PTR; pValue:CK_BYTE_PTR; valueLen:CK_ULONG);
 var
   counter:longword;
-  sValue:string;
   b:CK_BYTE;
 begin
   Writeln(PAnsiChar(pName)+':');
