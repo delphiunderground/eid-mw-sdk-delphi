@@ -61,9 +61,9 @@ begin
       b:=CK_BYTES_PTR(pValue)^[counter];
       if isprint(b)
       then
-	Write(Chr(b))
+        Write(Chr(b))
       else
-	Write('.');
+        Write('.');
       inc(counter);
     end;
   end;
@@ -176,7 +176,6 @@ begin
             Result:=pFunctions^.C_GetSlotList(CK_TRUE,SlotIds,@Slot_Count);
             if (Result=CKR_OK) then
             begin
-              //move(slotIds^,SlotIdss[0],Slot_Count*sizeof(CK_SLOT_ID));
               for slotIdx:=0 to slot_count-1 do
               begin
                 //open a session
