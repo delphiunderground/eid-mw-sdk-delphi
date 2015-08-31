@@ -26,6 +26,9 @@ program wait_card;
 //http://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
 
 uses
+  {$IFDEF FPC}
+  crt,
+  {$ENDIF}
   Windows, sysutils,
   PKCS11T;
 
@@ -37,6 +40,26 @@ type
   CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
   CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
 
+{$IFNDEF FPC}
+//In Delphi, crt unit and Readkey function don't exist anymore
+Function ReadKey:Char;
+var
+  Buffer:TInputRecord;
+  EventRead:Cardinal;
+  stdin:Thandle;
+begin
+  stdin := GetStdHandle(STD_INPUT_HANDLE);
+  Result:=#0;
+  repeat
+    ReadConsoleInput(stdin,Buffer,1,EventRead);
+    if (EventRead=1) and
+       (Buffer.EventType=KEY_EVENT) and
+       (Buffer.Event.KeyEvent.bKeyDown) and
+       (Buffer.Event.KeyEvent.AsciiChar<>#0) then
+      Result:=Buffer.Event.KeyEvent.AsciiChar;
+  until Result<>#0;
+end;
+{$ENDIF}
 
 function beidsdk_waitcard:CK_ULONG;
 var
@@ -151,5 +174,5 @@ var
 begin
   retval:=beidsdk_waitcard;
 
-  readln;
+  readkey;
 end.
