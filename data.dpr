@@ -128,14 +128,17 @@ begin
     Result:=pFunctions^.C_FindObjects(session_handle,@hObject,1,@ulObjectCount);
     if ((ulObjectCount=1) and (Result=CKR_OK)) then
     begin
+      //nil as second argument, so the length of value is filled in to
+      //retValueLen. See the definition of C_GetAttributeValue in the PKCS#11
+      //standard for more details.
       with attrtemplate do
       begin
-        //NULL_PTR as second argument, so the length of value is filled in to retValueLen
         _type:=CKA_VALUE;
         pValue:=nil;
         ulValueLen:=0;
       end;
-      //retrieve the length of the data from the object
+      //now run C_GetAttributeValue a second time to actually retrieve the
+      //data from the object
       Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
       if ((Result=CKR_OK) and (attrtemplate.ulValueLen<>-1)) then
       begin
@@ -144,10 +147,10 @@ begin
         //retrieve the data from the object
         Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
         pvalueLen^:=attrtemplate.ulValueLen;
-        //finalize the search
-        Result:=pFunctions^.C_FindObjectsFinal(session_handle);
       end;
     end;
+    //finalize the search
+    Result:=pFunctions^.C_FindObjectsFinal(session_handle);
   end;
 end;
 
@@ -283,7 +286,7 @@ begin
     writeln(PKCS11DLL+' not found');
     err:=GetLastError;
     writeln(Format('err is 0x%.8x',[err]));
-    //14001 MSVCR80.DLL not found
+    //14001 is "MSVCR80.DLL not found"
   end;
 end;
 
