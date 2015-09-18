@@ -122,36 +122,35 @@ begin
   pvalueLen^:=0;
   //initialize the search for the objects with label <filename>
   Result:=pFunctions^.C_FindObjectsInit(session_handle, @searchtemplate, 2);
-  if (Result=CKR_OK) then
+  if (Result<>CKR_OK) then exit;
+
+  //find the first object with label <filename>
+  Result:=pFunctions^.C_FindObjects(session_handle,@hObject,1,@ulObjectCount);
+  if ((ulObjectCount=1) and (Result=CKR_OK)) then
   begin
-    //find the first object with label <filename>
-    Result:=pFunctions^.C_FindObjects(session_handle,@hObject,1,@ulObjectCount);
-    if ((ulObjectCount=1) and (Result=CKR_OK)) then
+    //nil as second argument, so the length of value is filled in to
+    //retValueLen. See the definition of C_GetAttributeValue in the PKCS#11
+    //standard for more details.
+    with attrtemplate do
     begin
-      //nil as second argument, so the length of value is filled in to
-      //retValueLen. See the definition of C_GetAttributeValue in the PKCS#11
-      //standard for more details.
-      with attrtemplate do
-      begin
-        _type:=CKA_VALUE;
-        pValue:=nil;
-        ulValueLen:=0;
-      end;
-      //now run C_GetAttributeValue a second time to actually retrieve the
-      //data from the object
-      Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
-      if ((Result=CKR_OK) and (attrtemplate.ulValueLen<>-1)) then
-      begin
-        getmem(pointer(ppValue^),attrtemplate.ulValueLen);
-        attrtemplate.pValue:=pointer(ppValue^);
-        //retrieve the data from the object
-        Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
-        pvalueLen^:=attrtemplate.ulValueLen;
-      end;
+      _type:=CKA_VALUE;
+      pValue:=nil;
+      ulValueLen:=0;
     end;
-    //finalize the search
-    Result:=pFunctions^.C_FindObjectsFinal(session_handle);
+    //now run C_GetAttributeValue a second time to actually retrieve the
+    //data from the object
+    Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
+    if ((Result=CKR_OK) and (CK_LONG(attrtemplate.ulValueLen)<>-1)) then
+    begin
+      getmem(pointer(ppValue^),attrtemplate.ulValueLen);
+      attrtemplate.pValue:=pointer(ppValue^);
+      //retrieve the data from the object
+      Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
+      pvalueLen^:=attrtemplate.ulValueLen;
+    end;
   end;
+  //finalize the search
+  Result:=pFunctions^.C_FindObjectsFinal(session_handle);
 end;
 
 function beidsdk_GetData:CK_ULONG;
