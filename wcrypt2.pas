@@ -18,6 +18,7 @@
 { Contributor(s):                                                  }
 {     Peter Tang (peter.tang@citicorp.com)                         }
 {     Phil Shrimpton (phil@shrimpton.co.uk)                        }
+{     Vincent Hardy (vincent.hardy.be@gmail.com)                   }
 {                                                                  }
 { Obtained through:                                                }
 {                                                                  }
@@ -151,6 +152,14 @@ Const
   ALD_SID_SAFERSK128     = 8;
   ALG_SID_SAFERSK128     = 8;
   ALG_SID_3DES_112       = 9;
+  // AES sub_ids
+  //algorithm identifier got from
+  //https://msdn.microsoft.com/en-us/library/windows/desktop/aa375549%28v=vs.85%29.aspx
+  ALG_SID_AES_128        = 14;
+  ALG_SID_AES_192        = 15;
+  ALG_SID_AES_256        = 16;
+  ALG_SID_AES            = 17;
+  //---------------------------------------------------------------------------
   ALG_SID_CYLINK_MEK     = 12;
   ALG_SID_RC5            = 13;
 
@@ -221,6 +230,10 @@ Const
   CALG_DES              = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_DES);
   CALG_3DES_112         = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_3DES_112);
   CALG_3DES             = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_3DES);
+  CALG_AES_128          = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_AES_128);
+  CALG_AES_192          = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_AES_192);
+  CALG_AES_256          = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_AES_256);
+  CALG_AES              = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_AES);
   CALG_RC2              = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_BLOCK or ALG_SID_RC2);
   CALG_RC4              = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_STREAM or ALG_SID_RC4);
   CALG_SEAL             = (ALG_CLASS_DATA_ENCRYPT or ALG_TYPE_STREAM or ALG_SID_SEAL);
@@ -432,6 +445,7 @@ PROV_EC_ECNRA_SIG        = 15;
 PROV_EC_ECDSA_FULL       = 16;
 PROV_EC_ECNRA_FULL       = 17;
 PROV_SPYRUS_LYNKS        = 20;
+PROV_RSA_AES             = 24;
 
 
   // STT defined Providers
@@ -6897,6 +6911,55 @@ function CertStrToName(dwCertEncodingType :DWORD;
                        pcbEncoded :PDWORD;
                    var ppszError :array of LPAWSTR):BOOL ; stdcall;
 
+//+-------------------------------------------------------------------------
+//--------------------------------------------------------------------------
+function CertGetNameStringA(pCertContext :PCCERT_CONTEXT;
+                            dwType :DWORD;
+                            dwFlags :DWORD;
+                            pvTypePara :PVOID;
+                            pszNameString :LPSTR;
+                            cchNameString :DWORD):DWORD ; stdcall;
+//+-------------------------------------------------------------------------
+//--------------------------------------------------------------------------
+function CertGetNameStringW(pCertContext :PCCERT_CONTEXT;
+                            dwType :DWORD;
+                            dwFlags :DWORD;
+                            pvTypePara :PVOID;
+                            pszNameString :LPWSTR;
+                            cchNameString :DWORD):DWORD ; stdcall;
+
+function CertGetNameString(pCertContext :PCCERT_CONTEXT;
+                           dwType :DWORD;
+                           dwFlags :DWORD;
+                           pvTypePara :PVOID;
+                           pszNameString :LPAWSTR;
+                           cchNameString :DWORD):DWORD ; stdcall;
+//+-------------------------------------------------------------------------
+//  Certificate name types
+//--------------------------------------------------------------------------
+const
+  CERT_NAME_EMAIL_TYPE            = 1;
+  CERT_NAME_RDN_TYPE              = 2;
+  CERT_NAME_ATTR_TYPE             = 3;
+  CERT_NAME_SIMPLE_DISPLAY_TYPE   = 4;
+  CERT_NAME_FRIENDLY_DISPLAY_TYPE = 5;
+  CERT_NAME_DNS_TYPE              = 6;
+  CERT_NAME_URL_TYPE              = 7;
+  CERT_NAME_UPN_TYPE              = 8;
+
+//+-------------------------------------------------------------------------
+//  Certificate name flags
+//--------------------------------------------------------------------------
+  CERT_NAME_ISSUER_FLAG           = $1;
+  CERT_NAME_DISABLE_IE4_UTF8_FLAG = $00010000;
+
+
+// Following is only applicable to CERT_NAME_DNS_TYPE. When set returns
+// all names not just the first one. Returns a multi-string. Each string
+// will be null terminated. The last string will be double null terminated.
+  CERT_NAME_SEARCH_ALL_NAMES_FLAG = $2;
+
+
 //+=========================================================================
 //  Simplified Cryptographic Message Data Structures and APIs
 //==========================================================================
@@ -7832,6 +7895,13 @@ function CertStrToNameA; external CRYPT32 name 'CertStrToNameA';
 function CertStrToName; external CRYPT32 name 'CertStrToNameW';
 {$ELSE}
 function CertStrToName; external CRYPT32 name 'CertStrToNameA';
+{$ENDIF} // !UNICODE
+function CertGetNameStringW; external CRYPT32 name 'CertGetNameStringW';
+function CertGetNameStringA; external CRYPT32 name 'CertGetNameStringA';
+{$IFDEF UNICODE}
+function CertGetNameString; external CRYPT32 name 'CertGetNameStringW';
+{$ELSE}
+function CertGetNameString; external CRYPT32 name 'CertGetNameStringA';
 {$ENDIF} // !UNICODE
 function CryptSignMessage; external CRYPT32 name 'CryptSignMessage';
 //function CryptSignMessageWithKey; external CRYPT32 name 'CryptSignMessageWithKey';
