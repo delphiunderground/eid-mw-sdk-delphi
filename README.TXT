@@ -14,3 +14,13 @@ Send them to vincent.hardy.be@gmail.com
 Homepage:
   https://github.com/delphiunderground/eid-mw-sdk-delphi
 
+Third-party files:
+
+  PKCS11T.pas:
+  http://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
+  
+  wcrypt2.pas:
+  I improved wcrypt2.pas for cert_registration.pas -> CertGetNameStringW
+  http://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/api/CryptoAPI2.zip?format=raw
+  
+  These 2 files have been released by delphi-jedi.org under Mozilla Public License Version 1.1.
