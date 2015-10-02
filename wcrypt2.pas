@@ -50,6 +50,10 @@ unit wcrypt2;
   {$WEAKPACKAGEUNIT}
 {$ENDIF}
 
+{$IFDEF FPC}
+  {$MODE DELPHI}
+{$ENDIF}
+
 interface
 
 uses

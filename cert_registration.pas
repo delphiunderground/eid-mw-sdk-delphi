@@ -1,5 +1,9 @@
 unit cert_registration;
 
+{$IFDEF FPC}
+  {$MODE DELPHI}
+{$ENDIF}
+
 interface
 
 uses
