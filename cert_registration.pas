@@ -51,7 +51,7 @@ begin
            else Result:=Chr(55+uc);
 end;
 
-function ByteArrayToString(byteArray:CK_BYTES_PTR; ulArrayLen:CK_ULONG):AnsiString;
+function ByteArrayToString(byteArray:CK_BYTES_PTR; ulArrayLen:CK_ULONG):String;
 var
   ulOffset:cardinal;
   i:CK_ULONG;
@@ -175,7 +175,7 @@ var
   pPrevCert:PCCERT_CONTEXT;
   ContainerName:WideString;
   //ContainerNameCharLen:size_t;
-  cardSerialNrString:AnsiString;
+  cardSerialNrString:String;
   cryptKeyProvInfo:CRYPT_KEY_PROV_INFO;
   dwPropId:Cardinal;
   dwFlags:Cardinal;

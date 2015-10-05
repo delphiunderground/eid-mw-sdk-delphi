@@ -59,7 +59,11 @@ begin
        (Buffer.EventType=KEY_EVENT) and
        (Buffer.Event.KeyEvent.bKeyDown) and
        (Buffer.Event.KeyEvent.AsciiChar<>#0) then
+      {$IFDEF UNICODE}
+      Result:=Buffer.Event.KeyEvent.UnicodeChar;
+      {$ELSE}
       Result:=Buffer.Event.KeyEvent.AsciiChar;
+      {$ENDIF}
   until Result<>#0;
 end;
 {$ENDIF}
