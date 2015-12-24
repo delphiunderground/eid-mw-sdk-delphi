@@ -40,8 +40,6 @@ const
 type
   CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
   CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
-  CK_BYTES = array[0..65535] of CK_BYTE;
-  CK_BYTES_PTR = ^CK_BYTES;
 
 {$IFNDEF FPC}
 //In Delphi, crt unit and Readkey function don't exist anymore
@@ -71,7 +69,6 @@ end;
 procedure Beidsdk_PrintValue(pName:CK_CHAR_PTR; pValue:CK_BYTE_PTR; valueLen:CK_ULONG);
 var
   counter:longword;
-  b:CK_BYTE;
 begin
   writeln;
   Writeln(PAnsiChar(pName)+':');
@@ -81,12 +78,12 @@ begin
     counter:=0;
     while counter<valueLen do
     begin
-      b:=CK_BYTES_PTR(pValue)^[counter];
-      if ($29<b) and (b<$81)
+      if ($29<pValue^) and (pValue^<$81)
       then
-        Write(Chr(b))
+        Write(Chr(pValue^))
       else
         Write('.');
+      inc(pValue);
       inc(counter);
     end;
   end;

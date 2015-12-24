@@ -41,13 +41,10 @@ const
 type
   CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
   CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
-  CK_BYTES=array[0..65535] of CK_BYTE;
-  CK_BYTES_PTR=^CK_BYTES;
 
 procedure Beid_PrintValue(pValue:CK_BYTE_PTR; valueLen:CK_ULONG);
 var
   counter:longword;
-  b:CK_BYTE;
   sValue:AnsiString;
 begin
   if pValue<>nil then
@@ -56,9 +53,9 @@ begin
     counter:=0;
     while counter<valueLen do
     begin
-      b:=CK_BYTES_PTR(pValue)^[counter];
       inc(counter);
-      sValue[counter]:=AnsiChar(b);
+      sValue[counter]:=AnsiChar(pValue^);
+      inc(pValue);
     end;
 
     //DER format :

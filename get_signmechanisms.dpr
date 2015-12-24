@@ -39,8 +39,6 @@ const
 type
   CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
   CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
-  CK_MECHANISMS_TYPE=array[0..65535] of CK_MECHANISM_TYPE;
-  CK_MECHANISMS_TYPE_PTR=^CK_MECHANISMS_TYPE;
 
 {$IFNDEF FPC}
 //In Delphi, crt unit and Readkey function don't exist anymore
@@ -78,7 +76,7 @@ var
   slotIdx:CK_ULONG;
 
   ulMechCount:CK_ULONG;
-  pMechanismList:CK_MECHANISM_TYPE_PTR;
+  pMechanismList,pMechanism:CK_MECHANISM_TYPE_PTR;
   mechanismInfo:CK_MECHANISM_INFO;
   ulCount:CK_ULONG;
 begin
@@ -123,17 +121,19 @@ begin
                   if (Result=CKR_OK) then
                   begin
                     writeln('Card Mechanisms found :');
+                    pMechanism:=pMechanismList;
                     for ulCount:=0 to ulMechCount-1 do
                     begin
-                      Result:=pFunctions^.C_GetMechanismInfo(CK_SLOT_IDS_PTR(slotIds)^[slotIdx],CK_MECHANISMS_TYPE_PTR(pMechanismList)^[ulCount],@mechanismInfo);
+                      Result:=pFunctions^.C_GetMechanismInfo(CK_SLOT_IDS_PTR(slotIds)^[slotIdx],pMechanism^,@mechanismInfo);
                       if (Result=CKR_OK) then
                       begin
                         if (mechanismInfo.flags and CKF_SIGN)=CKF_SIGN
                         then
-                          writeln('Mechanism 0x'+IntTOHex(CK_MECHANISMS_TYPE_PTR(pMechanismList)^[ulCount],8)+', which supports signing')  // ,pMechanismList[ulCount])
+                          writeln('Mechanism 0x'+IntTOHex(pMechanism^,8)+', which supports signing')  // ,pMechanismList[ulCount])
                         else
-                          writeln('Mechanism 0x'+IntTOHex(CK_MECHANISMS_TYPE_PTR(pMechanismList)^[ulCount],8)+', which doesn''t support signing'); //,pMechanismList[ulCount]);
+                          writeln('Mechanism 0x'+IntTOHex(pMechanism^,8)+', which doesn''t support signing'); //,pMechanismList[ulCount]);
                       end;
+                      inc(pMechanism);
                     end;
                   end;
                   freemem(pMechanismList);
