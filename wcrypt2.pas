@@ -24,8 +24,11 @@
 {                                                                  }
 { Joint Endeavour of Delphi Innovators (Project JEDI)              }
 {                                                                  }
-{ You may retrieve the latest version of this file at the Project  }
-{ JEDI home page, located at http://delphi-jedi.org                }
+{ You may retrieve the original version of this file at the        }
+{ Project JEDI home page, located at http://delphi-jedi.org        }
+{                                                                  }
+{ You may retrieve the latest version of this file at              }
+{ https://github.com/delphiunderground/eid-mw-sdk-delphi           }
 {                                                                  }
 { The contents of this file are used with permission, subject to   }
 { the Mozilla Public License Version 1.1 (the "License"); you may  }
