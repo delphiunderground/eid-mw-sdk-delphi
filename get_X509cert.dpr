@@ -1,7 +1,7 @@
 (* ****************************************************************************
 
 * https://github.com/delphiunderground/eid-mw-sdk-delphi
-* Copyright (C) 2015 Vincent Hardy <vincent.hardy.be@gmail.com>
+* Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
 *
 * This is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License version
@@ -21,6 +21,9 @@
 {$APPTYPE CONSOLE}
 program get_X509cert;
 
+//OpenSC for Windows can be found here :
+//http://sourceforge.net/projects/opensc/files/OpenSC/
+
 //PKCS11T.pas can be found here :
 //http://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
 
@@ -37,16 +40,14 @@ uses
 const
   PKCS11DLL = 'beidpkcs11.dll';
 
-//Pascal pointers management
-type
-  CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
-  CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
-
 procedure Beid_PrintValue(pValue:CK_BYTE_PTR; valueLen:CK_ULONG);
 var
   counter:longword;
   sValue:AnsiString;
 begin
+  //pValue contains the same value as that obtained with the command :
+  //pkcs11-tool --module beidpkcs11.dll --read-object Signature --id 03000000 --type cert > signSC.der
+
   if pValue<>nil then
   begin
     SetLength(sValue,valueLen);
@@ -181,7 +182,7 @@ begin
               for slotIdx:=0 to slot_count-1 do
               begin
                 //open a session
-                Result:=pFunctions^.C_OpenSession(CK_SLOT_IDS_PTR(SlotIds)^[slotIdx],CKF_SERIAL_SESSION,nil,nil,@session_handle);
+                Result:=pFunctions^.C_OpenSession(PByteArray(SlotIds)^[slotIdx],CKF_SERIAL_SESSION,nil,nil,@session_handle);
                 if (Result=CKR_OK) then
                 begin
                   Beid_X509Certificate(pFunctions,session_handle);
