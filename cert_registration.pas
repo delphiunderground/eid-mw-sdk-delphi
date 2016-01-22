@@ -1,3 +1,24 @@
+(* ****************************************************************************
+
+* eID Middleware Project.
+* Copyright (C) 2011 FedICT.
+* Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
+*
+* This is free software; you can redistribute it and/or modify it
+* under the terms of the GNU Lesser General Public License version
+* 3.0 as published by the Free Software Foundation.
+*
+* This software is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+* Lesser General Public License for more details.
+*
+* You should have received a copy of the GNU Lesser General Public
+* License along with this software; if not, see
+* http://www.gnu.org/licenses/.
+
+**************************************************************************** *)
+
 unit cert_registration;
 
 {$IFDEF FPC}
@@ -31,9 +52,6 @@ type
   {$ELSE}
   size_t = integer;
   {$ENDIF}
-  //Pascal pointers management
-  CK_BYTES = array[0..65535] of CK_BYTE;
-  CK_BYTES_PTR = ^CK_BYTES;
   CK_CHAR_PTR_PTR = ^CK_CHAR_PTR;
 
 const
@@ -51,18 +69,18 @@ begin
            else Result:=Chr(55+uc);
 end;
 
-function ByteArrayToString(byteArray:CK_BYTES_PTR; ulArrayLen:CK_ULONG):String;
+function ByteArrayToString(byteArray:CK_BYTE_PTR; ulArrayLen:CK_ULONG):String;
 var
   ulOffset:cardinal;
   i:CK_ULONG;
 begin
   setlength(Result,ulArrayLen*2+1);
-  ulOffset:=1;  
+  ulOffset:=1;
   for i:=0 to ulArrayLen-1 do
   begin
-    Result[ulOffset]:=ToHex(CK_BYTES_PTR(byteArray)^[i] div 16);
+    Result[ulOffset]:=ToHex(PByteArray(byteArray)^[i] div 16);
     inc(ulOffset);
-    Result[ulOffset]:=ToHex(CK_BYTES_PTR(byteArray)^[i] mod 16);
+    Result[ulOffset]:=ToHex(PByteArray(byteArray)^[i] mod 16);
     inc(ulOffset);
   end;
   Result[ulOffset]:=#0;

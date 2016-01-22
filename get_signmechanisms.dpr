@@ -2,7 +2,7 @@
 
 * eID Middleware Project.
 * Copyright (C) 2009-2010 FedICT.
-* Copyright (C) 2015 Vincent Hardy <vincent.hardy.be@gmail.com>
+* Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
 *
 * This is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License version
@@ -34,11 +34,6 @@ uses
 
 const
   PKCS11DLL = 'beidpkcs11.dll';
-
-//Pascal pointers management
-type
-  CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
-  CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
 
 {$IFNDEF FPC}
 //In Delphi, crt unit and Readkey function don't exist anymore
@@ -113,18 +108,18 @@ begin
                 ulMechCount:=0;
                 pMechanismList:=nil;
                 // C_GetMechanismList
-                Result:=pFunctions^.C_GetMechanismList(CK_SLOT_IDS_PTR(slotIds)^[slotIdx],nil,@ulMechCount);
+                Result:=pFunctions^.C_GetMechanismList(PByteArray(slotIds)^[slotIdx],nil,@ulMechCount);
                 if (Result=CKR_OK) and (ulMechCount>0) then
                 begin
                   getmem(pMechanismList,ulMechCount*sizeof(CK_MECHANISM_TYPE));
-                  Result:=pFunctions^.C_GetMechanismList(CK_SLOT_IDS_PTR(slotIds)^[slotIdx],pMechanismList,@ulMechCount);
+                  Result:=pFunctions^.C_GetMechanismList(PByteArray(slotIds)^[slotIdx],pMechanismList,@ulMechCount);
                   if (Result=CKR_OK) then
                   begin
                     writeln('Card Mechanisms found :');
                     pMechanism:=pMechanismList;
                     for ulCount:=0 to ulMechCount-1 do
                     begin
-                      Result:=pFunctions^.C_GetMechanismInfo(CK_SLOT_IDS_PTR(slotIds)^[slotIdx],pMechanism^,@mechanismInfo);
+                      Result:=pFunctions^.C_GetMechanismInfo(PByteArray(slotIds)^[slotIdx],pMechanism^,@mechanismInfo);
                       if (Result=CKR_OK) then
                       begin
                         if (mechanismInfo.flags and CKF_SIGN)=CKF_SIGN

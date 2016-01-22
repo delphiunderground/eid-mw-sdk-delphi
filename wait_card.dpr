@@ -2,7 +2,7 @@
 
 * eID Middleware Project.
 * Copyright (C) 2009-2010 FedICT.
-* Copyright (C) 2015 Vincent Hardy <vincent.hardy.be@gmail.com>
+* Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
 *
 * This is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License version
@@ -34,11 +34,6 @@ uses
 
 const
   PKCS11DLL = 'beidpkcs11.dll';
-
-//Pascal pointers management
-type
-  CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
-  CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
 
 {$IFNDEF FPC}
 //In Delphi, crt unit and Readkey function don't exist anymore
@@ -111,7 +106,7 @@ begin
               //check if a card is already present in one of the readers
               for slotIdx:=0 to slot_count-1 do
               begin
-                Result:=pFunctions^.C_GetSlotInfo(CK_SLOT_IDS_PTR(SlotIds)^[slotIdx],@slotinfo);
+                Result:=pFunctions^.C_GetSlotInfo(PByteArray(SlotIds)^[slotIdx],@slotinfo);
                 if (Result=CKR_OK) and ((slotinfo.flags and CKF_TOKEN_PRESENT)=CKF_TOKEN_PRESENT) then
                 begin
                   move(slotinfo.slotDescription,slotDescription,64);
@@ -133,7 +128,7 @@ begin
                   writeln('Card inserted');
                   for slotIdx:=0 to slot_count-1 do
                   begin
-                    if CK_SLOT_IDS_PTR(SlotIds)^[slotIdx]=slotId then  //(slotId=slotIds[slotIdx])
+                    if PByteArray(SlotIds)^[slotIdx]=slotId then  //(slotId=slotIds[slotIdx])
                     begin
                       Result:=pFunctions^.C_GetSlotInfo(slotId,@slotinfo);
                       if (Result=CKR_OK) then

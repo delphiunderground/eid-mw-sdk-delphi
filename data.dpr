@@ -2,7 +2,7 @@
 
 * eID Middleware Project.
 * Copyright (C) 2011-2012 FedICT.
-* Copyright (C) 2015 Vincent Hardy <vincent.hardy.be@gmail.com>
+* Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
 *
 * This is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License version
@@ -34,11 +34,6 @@ uses
 
 const
   PKCS11DLL = 'beidpkcs11.dll';
-
-//Pascal pointers management
-type
-  CK_SLOT_IDS=array[0..255] of CK_SLOT_ID;
-  CK_SLOT_IDS_PTR=^CK_SLOT_IDS;
 
 //Quick and dirty Pascal equivalent to isprint
 function isprint(b:byte):boolean;
@@ -205,7 +200,7 @@ begin
               for slotIdx:=0 to slot_count-1 do
               begin
                 //open a session
-                Result:=pFunctions^.C_OpenSession(CK_SLOT_IDS_PTR(SlotIds)^[slotIdx],CKF_SERIAL_SESSION,nil,nil,@session_handle);
+                Result:=pFunctions^.C_OpenSession(PByteArray(SlotIds)^[slotIdx],CKF_SERIAL_SESSION,nil,nil,@session_handle);
                 if (Result=CKR_OK) then
                 begin
                   PAnsiChar(pFilename):='carddata_glob_os_version';
