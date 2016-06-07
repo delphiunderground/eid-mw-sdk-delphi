@@ -205,6 +205,9 @@ Const
   ALG_SID_RIPEMD160      = 7;
   ALG_SID_SSL3SHAMD5     = 8;
   ALG_SID_HMAC           = 9;
+  ALG_SID_SHA_256        = 12;
+  ALG_SID_SHA_384        = 13;
+  ALG_SID_SHA_512        = 14;
 
   // secure channel sub ids
   ALG_SID_SSL3_MASTER          = 1;
@@ -230,6 +233,9 @@ Const
   CALG_MD5              = (ALG_CLASS_HASH or ALG_TYPE_ANY or ALG_SID_MD5);
   CALG_SHA              = (ALG_CLASS_HASH or ALG_TYPE_ANY or ALG_SID_SHA);
   CALG_SHA1             = (ALG_CLASS_HASH or ALG_TYPE_ANY or ALG_SID_SHA1);
+  CALG_SHA_256          = (ALG_CLASS_HASH or ALG_TYPE_ANY or ALG_SID_SHA_256);
+  CALG_SHA_384          = (ALG_CLASS_HASH or ALG_TYPE_ANY or ALG_SID_SHA_384);
+  CALG_SHA_512          = (ALG_CLASS_HASH or ALG_TYPE_ANY or ALG_SID_SHA_512);
   CALG_MAC              = (ALG_CLASS_HASH or ALG_TYPE_ANY or ALG_SID_MAC);
   CALG_RSA_SIGN         = (ALG_CLASS_SIGNATURE or ALG_TYPE_RSA or ALG_SID_RSA_ANY);
   CALG_DSS_SIGN         = (ALG_CLASS_SIGNATURE or ALG_TYPE_DSS or ALG_SID_DSS_ANY);
@@ -1059,13 +1065,16 @@ const
   szOID_PKCS_9      = '1.2.840.113549.1.9';
   szOID_PKCS_10     = '1.2.840.113549.1.10';
 
-  szOID_RSA_RSA     = '1.2.840.113549.1.1.1';
-  szOID_RSA_MD2RSA  = '1.2.840.113549.1.1.2';
-  szOID_RSA_MD4RSA  = '1.2.840.113549.1.1.3';
-  szOID_RSA_MD5RSA  = '1.2.840.113549.1.1.4';
-  szOID_RSA_SHA1RSA = '1.2.840.113549.1.1.5';
+  szOID_RSA_RSA          = '1.2.840.113549.1.1.1';
+  szOID_RSA_MD2RSA       = '1.2.840.113549.1.1.2';
+  szOID_RSA_MD4RSA       = '1.2.840.113549.1.1.3';
+  szOID_RSA_MD5RSA       = '1.2.840.113549.1.1.4';
+  szOID_RSA_SHA1RSA      = '1.2.840.113549.1.1.5';
   szOID_RSA_SETOAEP_RSA  = '1.2.840.113549.1.1.6';
-  
+  szOID_RSA_SHA256RSA    = '1.2.840.113549.1.1.11';
+  szOID_RSA_SHA384RSA    = '1.2.840.113549.1.1.12';
+  szOID_RSA_SHA512RSA    = '1.2.840.113549.1.1.13';
+
   szOID_RSA_data             = '1.2.840.113549.1.7.1';
   szOID_RSA_signedData       = '1.2.840.113549.1.7.2';
   szOID_RSA_envelopedData    = '1.2.840.113549.1.7.3';
