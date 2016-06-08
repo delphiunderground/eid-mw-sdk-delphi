@@ -20,7 +20,12 @@ Third-party files:
   http://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
   
   wcrypt2.pas:
-  I improved wcrypt2.pas for cert_registration.pas -> CertGetNameStringW
+  You may retrieve the original version of this file here : 
   http://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/api/CryptoAPI2.zip?format=raw
+  Howerver, I improved wcrypt2.pas by adding CertGetNameStringW function
+  required by cert_registration.pas unit.
+  Generally speaking, waiting a more official repository, the latest version
+  of wcrypt2.pas is in this github repository.
+
   
   These 2 files have been released by delphi-jedi.org under Mozilla Public License Version 1.1.
