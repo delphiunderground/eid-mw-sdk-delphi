@@ -18,24 +18,10 @@
 
 
 {$APPTYPE CONSOLE}
-program sign;
+program sign_d5_d7;
 
 uses
-  IdSSLOpenSSLHeaders in 'indy_minimal\IdSSLOpenSSLHeaders.pas',
-  IdBaseComponent in 'indy_minimal\IdBaseComponent.pas',
-  IdFIPS in 'indy_minimal\IdFIPS.pas',
-  IdGlobal in 'indy_minimal\IdGlobal.pas',
-  IdGlobalProtocols in 'indy_minimal\IdGlobalProtocols.pas',
-  IdIPAddress in 'indy_minimal\IdIPAddress.pas',
-  IdResourceStrings in 'indy_minimal\IdResourceStrings.pas',
-  IdResourceStringsOpenSSL in 'indy_minimal\IdResourceStringsOpenSSL.pas',
-  IdStack in 'indy_minimal\IdStack.pas',
-  IdStackBSDBase in 'indy_minimal\IdStackBSDBase.pas',
-  IdStackWindows in 'indy_minimal\IdStackWindows.pas',
-  IdStream in 'indy_minimal\IdStream.pas',
-  IdStreamVCL in 'indy_minimal\IdStreamVCL.pas',
-  IdWinsock2 in 'indy_minimal\IdWinsock2.pas',
-  IdWship6 in 'indy_minimal\IdWship6.pas',
+  IdSSLOpenSSLHeaders in 'indy_d5_d7\IdSSLOpenSSLHeaders.pas',
   get_sign;
 
 begin
