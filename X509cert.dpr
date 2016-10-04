@@ -1,22 +1,21 @@
-(* ****************************************************************************
+(*
+ * https://github.com/delphiunderground/eid-mw-sdk-delphi
+ * Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License version
+ * 3.0 as published by the Free Software Foundation.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, see
+ * http://www.gnu.org/licenses/.
+ *)
 
-* https://github.com/delphiunderground/eid-mw-sdk-delphi
-* Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
-*
-* This is free software; you can redistribute it and/or modify it
-* under the terms of the GNU Lesser General Public License version
-* 3.0 as published by the Free Software Foundation.
-*
-* This software is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-* Lesser General Public License for more details.
-*
-* You should have received a copy of the GNU Lesser General Public
-* License along with this software; if not, see
-* http://www.gnu.org/licenses/.
-
-**************************************************************************** *)
 
 {$APPTYPE CONSOLE}
 program X509cert;
@@ -24,12 +23,14 @@ program X509cert;
 uses
   {$IFDEF OpenSSL-Delphi}
   ssl_ec in 'OpenSSL-Delphi\ssl_ec.pas',
+  ssl_bio in 'OpenSSL-Delphi\ssl_bio.pas',
   ssl_bn in 'OpenSSL-Delphi\ssl_bn.pas',
   ssl_util in 'OpenSSL-Delphi\ssl_util.pas',
   ssl_objects in 'OpenSSL-Delphi\ssl_objects.pas',
   ssl_lib in'OpenSSL-Delphi\ssl_lib.pas',
   ssl_err in 'OpenSSL-Delphi\ssl_err.pas',
   ssl_evp in 'OpenSSL-Delphi\ssl_evp.pas',
+  ssl_pem in 'OpenSSL-Delphi\ssl_pem.pas',
   ssl_types in 'OpenSSL-Delphi\ssl_types.pas',
   ssl_x509 in 'OpenSSL-Delphi\ssl_x509.pas',
   ssl_const in 'OpenSSL-Delphi\ssl_const.pas',
