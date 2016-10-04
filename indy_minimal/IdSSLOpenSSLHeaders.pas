@@ -16614,12 +16614,18 @@ var
   X509_get_default_cert_file : function : PIdAnsiChar cdecl = nil;
   {$EXTERNALSYM X509_get_default_cert_file_env}
   X509_get_default_cert_file_env : function : PIdAnsiChar cdecl = nil;
+  {$EXTERNALSYM BIO_set_flags}
+  BIO_set_flags : procedure(b: PBIO; flags: integer) cdecl = nil;
   {$EXTERNALSYM BIO_new}
   BIO_new : function(_type: PBIO_METHOD): PBIO cdecl = nil;
   {$EXTERNALSYM BIO_new_mem_buf}
   BIO_new_mem_buf : function (buf : Pointer; len : TIdC_INT) : PBIO cdecl = nil;
+  {$EXTERNALSYM BIO_push}
+  BIO_push : function(b: PBIO; append: PBIO): PBIO cdecl = nil;
   {$EXTERNALSYM BIO_free}
   BIO_free : function(bio: PBIO): TIdC_INT cdecl = nil;
+  {$EXTERNALSYM BIO_free_all}
+  BIO_free_all : procedure(bio: PBIO) cdecl = nil;
   {$EXTERNALSYM BIO_s_mem}
   BIO_s_mem : function: PBIO_METHOD cdecl = nil;
   {$EXTERNALSYM BIO_s_file}
@@ -16651,7 +16657,7 @@ var
   {$EXTERNALSYM BN_free}
   BN_free : procedure(a: PBIGNUM) cdecl = nil;
   {$EXTERNALSYM BN_bn2dec}
-  BN_bn2dec: function(const n:PBIGNUM): PAnsiChar cdecl = nil;  
+  BN_bn2dec: function(const n:PBIGNUM): PIdAnsiChar cdecl = nil;
   {$EXTERNALSYM BN_bn2hex}
   BN_bn2hex: function(const n:PBIGNUM): PIdAnsiChar cdecl = nil;
   {$EXTERNALSYM BN_set_word}
@@ -18137,6 +18143,8 @@ procedure IdOpenSSLSetLibPath(const APath: String);
 {$ENDIF}
 //
 procedure InitializeRandom;
+procedure CleanupRandom;
+
  {$EXTERNALSYM M_ASN1_STRING_length}
 function M_ASN1_STRING_length(x : PASN1_STRING): TIdC_INT;
  {$EXTERNALSYM M_ASN1_STRING_length_set}
@@ -18818,6 +18826,7 @@ function IsOpenSSL_TLSv1_1_Available : Boolean;
 function IsOpenSSL_TLSv1_2_Available : Boolean;
 function IsOpenSSL_DTLSv1_Available : Boolean;
 
+procedure RAND_cleanup;
 function RAND_bytes(buf : PIdAnsiChar; num : integer) : integer;
 function RAND_pseudo_bytes(buf : PIdAnsiChar; num : integer) : integer;
 procedure RAND_seed(buf : PIdAnsiChar; num : integer);
@@ -19443,6 +19452,7 @@ type
   {$IFDEF SYS_WIN}
   TRAND_event = function(iMsg : UINT; wp : wparam; lp : lparam) : integer; cdecl;
   {$ENDIF}
+  TRAND_cleanup = procedure; cdecl;
 
 {$IFDEF STATICLOAD_OPENSSL}
 const
@@ -19478,6 +19488,7 @@ var
   FFailedLoadList : TStringList;
   {$ENDIF}
 
+  _RAND_cleanup : TRAND_cleanup = nil;
   _RAND_bytes : TRAND_bytes = nil;
   _RAND_pseudo_bytes : TRAND_pseudo_bytes = nil;
   _RAND_seed : TRAND_seed = nil;
@@ -19665,6 +19676,7 @@ them in case we use them later.}
   {CH fn_BUF_MEM_grow = 'BUF_MEM_grow'; }  {Do not localize}
   {CH fn_BUF_strdup = 'BUF_strdup'; }  {Do not localize}
   {CH fn_ERR_load_BUF_strings = 'ERR_load_BUF_strings'; }  {Do not localize}
+  fn_BIO_set_flags = 'BIO_set_flags';  {Do not localize}
   {CH fn_BIO_ctrl_pending = 'BIO_ctrl_pending'; }  {Do not localize}
   {CH fn_BIO_ctrl_wpending = 'BIO_ctrl_wpending'; }  {Do not localize}
   {CH fn_BIO_ctrl_get_write_guarantee = 'BIO_ctrl_get_write_guarantee'; }  {Do not localize}
@@ -19686,9 +19698,9 @@ them in case we use them later.}
   fn_BIO_ctrl = 'BIO_ctrl';  {Do not localize}
   fn_BIO_ptr_ctrl = 'BIO_ptr_ctrl';   {Do not localize}
   fn_BIO_int_ctrl = 'BIO_int_ctrl';  {Do not localize}
-  {CH fn_BIO_push = 'BIO_push'; }  {Do not localize}
+  fn_BIO_push = 'BIO_push';   {Do not localize}
   {CH fn_BIO_pop = 'BIO_pop'; }  {Do not localize}
-  {CH fn_BIO_free_all = 'BIO_free_all'; }  {Do not localize}
+  fn_BIO_free_all = 'BIO_free_all';   {Do not localize}
   {CH fn_BIO_find_type = 'BIO_find_type'; }  {Do not localize}
   {CH fn_BIO_get_retry_BIO = 'BIO_get_retry_BIO'; }  {Do not localize}
   {CH fn_BIO_get_retry_reason = 'BIO_get_retry_reason'; }  {Do not localize}
@@ -22139,7 +22151,7 @@ them in case we use them later.}
   {CH fn_RAND_set_rand_engine = 'RAND_set_rand_engine'; } {Do not localize}
   {$ENDIF}
   {CH fn_RAND_SSLeay = 'RAND_SSLeay'; } {Do not localize}
-  {CH fn_RAND_cleanup = 'RAND_cleanup'; } {Do not localize}
+  fn_RAND_cleanup = 'RAND_cleanup'; {Do not localize}
   fn_RAND_bytes = 'RAND_bytes'; {Do not localize}
   fn_RAND_pseudo_bytes = 'RAND_pseudo_bytes'; {Do not localize}
   fn_RAND_seed = 'RAND_seed'; {Do not localize}
@@ -22620,7 +22632,7 @@ begin
   if hIdCrypto = 0 then begin
     hIdCrypto := LoadSSLCryptoLibrary;
     if hIdCrypto = 0 then begin
-      FFailedLoadList.Add(IndyFormat(RSOSSFailedToLoad, [GIdOpenSSLPath + SSLCLIB_DLL_name]));
+      FFailedLoadList.Add(IndyFormat(RSOSSFailedToLoad, [GIdOpenSSLPath + SSLCLIB_DLL_name {$IFDEF UNIX}+ LIBEXT{$ENDIF}]));
       Exit;
     end;
   end;
@@ -22628,7 +22640,7 @@ begin
   if hIdSSL = 0 then begin
     hIdSSL := LoadSSLLibrary;
     if hIdSSL = 0 then begin
-      FFailedLoadList.Add(IndyFormat(RSOSSFailedToLoad, [GIdOpenSSLPath + SSL_DLL_name]));
+      FFailedLoadList.Add(IndyFormat(RSOSSFailedToLoad, [GIdOpenSSLPath + SSL_DLL_name {$IFDEF UNIX}+ LIBEXT{$ENDIF}]));
       Exit;
     end;
   end;
@@ -22765,6 +22777,7 @@ begin
   //X509_print
   @X509_print := LoadFunctionCLib(fn_X509_print, False );  //Used by Indy
   {$ENDIF}
+  @_RAND_cleanup := LoadFunctionCLib(fn_RAND_cleanup, False); //Used by Indy
   @_RAND_bytes := LoadFunctionCLib(fn_RAND_bytes); //Used by Indy
   @_RAND_pseudo_bytes := LoadFunctionCLib(fn_RAND_pseudo_bytes); //Used by Indy
   @_RAND_seed := LoadFunctionCLib(fn_RAND_seed); //Used by Indy
@@ -22857,12 +22870,15 @@ we have to handle both cases.
   @BN_new := LoadFunctionCLib(fn_BN_new,False);
   @BN_free := LoadFunctionCLib(fn_BN_free,False);
   @BN_hex2bn := LoadFunctionCLib(fn_BN_hex2bn,False);
-  @BN_bn2dec := LoadFunctionCLib(fn_BN_bn2dec,False);  
+  @BN_bn2dec := LoadFunctionCLib(fn_BN_bn2dec,False);
   @BN_bn2hex := LoadFunctionCLib(fn_BN_bn2hex,False);
   @BN_set_word := LoadFunctionCLib(fn_BN_set_word,False);
   //BIO
+  @BIO_set_flags := LoadFunctionCLib(fn_BIO_set_flags);
   @BIO_new := LoadFunctionCLib(fn_BIO_new);   //Used by Indy
+  @BIO_push := LoadFunctionCLib(fn_BIO_push);
   @BIO_free := LoadFunctionCLib(fn_BIO_free);  //Used by Indy
+  @BIO_free_all := LoadFunctionCLib(fn_BIO_free_all);
   @BIO_new_mem_buf := LoadFunctionCLib(fn_BIO_new_mem_buf);   //Used by Indy
   @BIO_s_mem := LoadFunctionCLib(fn_BIO_s_mem);  //Used by Indy
   @BIO_s_file := LoadFunctionCLib(fn_BIO_s_file,False);
@@ -23084,7 +23100,6 @@ we have to handle both cases.
   @EVP_aes_128_xts := LoadFunctionCLib(fn_EVP_aes_128_xts,False);
   @EVP_aes_192_ecb := LoadFunctionCLib(fn_EVP_aes_192_ecb,False);
   @EVP_aes_192_cbc := LoadFunctionCLib(fn_EVP_aes_192_cbc,False);
-  @EVP_aes_192_cfb1 := LoadFunctionCLib(fn_EVP_aes_192_cfb1,False);
   @EVP_aes_192_cfb1 := LoadFunctionCLib(fn_EVP_aes_192_cfb1,False);
   @EVP_aes_192_cfb128 := LoadFunctionCLib(fn_EVP_aes_192_cfb128,False);
 
@@ -23390,7 +23405,7 @@ we have to handle both cases.
   //ASN1
   @ASN1_INTEGER_set := LoadFunctionCLib(fn_ASN1_INTEGER_set);
   @ASN1_INTEGER_get := LoadFunctionCLib(fn_ASN1_INTEGER_get);
-  @ASN1_INTEGER_to_BN := LoadFunctionCLib(fn_ASN1_INTEGER_to_BN);  
+  @ASN1_INTEGER_to_BN := LoadFunctionCLib(fn_ASN1_INTEGER_to_BN);
   @ASN1_STRING_type_new := LoadFunctionCLib(fn_ASN1_STRING_type_new);
   @ASN1_STRING_free := LoadFunctionCLib(fn_ASN1_STRING_free);
   @ASN1_dup := LoadFunctionCLib(fn_ASN1_dup );
@@ -23530,6 +23545,7 @@ begin
   //X509_print
   @X509_print := nil;
   {$ENDIF}
+  @_RAND_cleanup := nil;
   @_RAND_bytes := nil;
   @_RAND_pseudo_bytes := nil;
   @_RAND_seed := nil;
@@ -23600,7 +23616,9 @@ begin
   @DH_free := nil;
   //BIO
   @BIO_new := nil;
+  @BIO_push := nil;
   @BIO_free := nil;
+  @BIO_free_all := nil;
   @BIO_s_mem := nil;
   @BIO_s_file := nil;
   @BIO_set_ex_data := nil;
@@ -23615,7 +23633,7 @@ begin
   @BIO_write := nil;
   //BN
   @BN_hex2bn := nil;
-  @BN_bn2dec := nil;  
+  @BN_bn2dec := nil;
   @BN_bn2hex := nil;
   //i2d
   @i2d_PKCS7 := nil;
@@ -23826,7 +23844,6 @@ begin
   @EVP_aes_128_xts := nil;
   @EVP_aes_192_ecb := nil;
   @EVP_aes_192_cbc := nil;
-  @EVP_aes_192_cfb1 := nil;
   @EVP_aes_192_cfb1 := nil;
   @EVP_aes_192_cfb128 := nil;
 
@@ -24309,6 +24326,13 @@ begin
     _RAND_screen;
   end;
   {$ENDIF}
+end;
+
+procedure CleanupRandom;
+begin
+  if Assigned(_RAND_cleanup) then begin
+    _RAND_cleanup;
+  end;
 end;
 
 function M_ASN1_STRING_length(x : PASN1_STRING): TIdC_INT;
@@ -26431,6 +26455,13 @@ function X509_LOOKUP_add_dir(x : PX509_LOOKUP; name : PIdAnsiChar; _type : TIdC_
 {$IFDEF USE_INLINE} inline; {$ENDIF}
 begin
   Result := X509_LOOKUP_ctrl(x, X509_L_ADD_DIR, name, _type, nil);
+end;
+
+procedure RAND_cleanup;
+begin
+  if Assigned(_RAND_cleanup) then begin
+    _RAND_cleanup();
+  end;
 end;
 
 function RAND_bytes(buf : PIdAnsiChar; num : integer) : integer;

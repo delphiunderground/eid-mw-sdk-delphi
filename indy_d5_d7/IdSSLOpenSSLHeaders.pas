@@ -383,6 +383,9 @@ Const
   OPENSSL_BIO_C_SHUTDOWN_WR = 142;
   OPENSSL_BIO_C_SSL_MODE = 119;
   OPENSSL_BIO_FLAGS_BASE64_NO_NL = $100;
+  //for compatibility
+  BIO_FLAGS_BASE64_NO_NL = OPENSSL_BIO_FLAGS_BASE64_NO_NL;
+  //
   OPENSSL_BIO_FLAGS_IO_SPECIAL = $04;
   OPENSSL_BIO_FLAGS_READ = $01;
   OPENSSL_BIO_FLAGS_WRITE = $02;
@@ -2627,11 +2630,11 @@ Type
   PPSTACK         =^PSTACK;
   PCRYPTO_EX_DATA = Pointer;
   PLHASH	  = Pointer;
+  PBIO_METHOD     = Pointer;
+  PBIO		  = Pointer;
 {
   PBUF_MEM	  = Pointer;
-  PBIO		  = Pointer;
   PPBIO	          =^PBIO;
-  PBIO_METHOD     = Pointer;
   PFILE		  = Pointer;
   PBIGNUM	  = Pointer;
   PPBIGNUM	  =^PBIGNUM;
@@ -2706,6 +2709,7 @@ Type
   PPX509_INFO		   =^PX509_INFO;
 
   TIdC_INT   = LongInt;
+  TIdC_LONG  = LongInt;
   TIdC_ULONG = LongWord;
   BN_ULONG = TIdC_ULONG;
   PBN_ULONG = ^BN_ULONG;
@@ -2958,6 +2962,18 @@ var
   CRYPTO_free : procedure(ptr : Pointer) cdecl = nil;
   X509_free : procedure(x: PX509) cdecl = nil;
 
+  //BIO
+  BIO_set_flags : procedure(b: PBIO; flags: integer) cdecl = nil;
+  BIO_new : function(_type: PBIO_METHOD): PBIO cdecl = nil;
+  BIO_push : function(b: PBIO; append: PBIO): PBIO cdecl = nil;
+  BIO_free : function(bio: PBIO): TIdC_INT cdecl = nil;
+  BIO_free_all : procedure(bio: PBIO) cdecl = nil;
+  BIO_f_base64 : function : PBIO_METHOD cdecl = nil;
+  BIO_s_mem : function: PBIO_METHOD cdecl = nil;
+  BIO_read : function(b: PBIO; data: Pointer; len: TIdC_INT): TIdC_INT cdecl = nil;
+  BIO_write : function(b: PBIO; const buf: Pointer; len: TIdC_INT): TIdC_INT cdecl = nil;
+  BIO_ctrl : function(bp: PBIO; cmd: TIdC_INT; larg: TIdC_LONG; parg: Pointer): TIdC_LONG cdecl = nil;
+
   //BN
   BN_bn2dec: function(const n:PBIGNUM): PAnsiChar cdecl = nil;
   BN_free : procedure(a: PBIGNUM) cdecl = nil;
@@ -3013,6 +3029,11 @@ var
   IdSSLERR_load_crypto_strings : procedure; cdecl = nil;
   //void ERR_free_strings(void)
   IdSSLERR_free_strings : procedure; cdecl = nil;
+
+  PEM_write_bio_X509 : function(b: PBIO; x: PX509): TIdC_INT cdecl = nil;
+
+
+function BIO_flush(b : PBIO) : TIdC_INT;
 
 function IdSslUCTTimeDecode(UCTtime : PASN1_UTCTIME; Var year, month, day, hour, min, sec: Word;
   Var tz_hour, tz_min: Integer): Integer;
@@ -3136,6 +3157,7 @@ const
   fn_BIO_s_file = 'BIO_s_file';  {Do not localize}
   fn_BIO_new_file = 'BIO_new_file';  {Do not localize}
   fn_BIO_new_fp = 'BIO_new_fp';  {Do not localize}
+  fn_BIO_set_flags = 'BIO_set_flags';  {Do not localize}
   fn_BIO_new = 'BIO_new';  {Do not localize}
   fn_BIO_set = 'BIO_set';  {Do not localize}
   fn_BIO_free = 'BIO_free';  {Do not localize}
@@ -4703,6 +4725,7 @@ const
   fn_ERR_load_ERR_strings = 'ERR_load_ERR_strings'; {Do not localize}
   fn_ERR_free_strings = 'ERR_free_strings'; {do not localize}
 
+
 function LoadFunction(FceName:String):Pointer;
 begin
   FceName := FceName+#0;
@@ -4852,6 +4875,18 @@ begin
   @CRYPTO_free := LoadFunctionCLib(fn_CRYPTO_free);
   @X509_free := LoadFunctionCLib(fn_X509_free);
 
+  //BIO
+  @BIO_set_flags := LoadFunctionCLib(fn_BIO_set_flags);
+  @BIO_new := LoadFunctionCLib(fn_BIO_new);
+  @BIO_push := LoadFunctionCLib(fn_BIO_push);
+  @BIO_free := LoadFunctionCLib(fn_BIO_free);
+  @BIO_free_all := LoadFunctionCLib(fn_BIO_free_all);
+  @BIO_f_base64 := LoadFunctionCLib(fn_BIO_f_base64);
+  @BIO_s_mem := LoadFunctionCLib(fn_BIO_s_mem);
+  @BIO_read := LoadFunctionCLib(fn_BIO_read);
+  @BIO_write := LoadFunctionCLib(fn_BIO_write);
+  @BIO_ctrl := LoadFunctionCLib(fn_BIO_ctrl);
+
   //BN
   @BN_bn2dec := LoadFunctionCLib(fn_BN_bn2dec);
   @BN_free := LoadFunctionCLib(fn_BN_free);
@@ -4896,6 +4931,7 @@ begin
   @IdSSLERR_load_ERR_strings := LoadFunctionCLib( fn_ERR_load_ERR_strings);
   @IdSSLERR_load_crypto_strings := LoadFunctionCLib(fn_ERR_load_crypto_strings);
   @IdSSLERR_free_strings := LoadFunctionCLib(fn_ERR_free_strings);
+  @PEM_write_bio_X509 := LoadFunctionCLib(fn_PEM_write_bio_X509);
 
   result :=
     (@IdSslCtxSetCipherList<>nil) and
@@ -4970,6 +5006,17 @@ begin
     (@CRYPTO_Free<>nil) and
     (@X509_Free<>nil) and
 
+    (@BIO_set_flags<>nil) and
+    (@BIO_new<>nil) and
+    (@BIO_push<>nil) and
+    (@BIO_free<>nil) and
+    (@BIO_free_all<>nil) and
+    (@BIO_f_base64<>nil) and
+    (@BIO_s_mem<>nil) and
+    (@BIO_read<>nil) and
+    (@BIO_write<>nil) and
+    (@BIO_ctrl<>nil) and
+
     (@BN_bn2dec<>nil) and
     (@BN_free<>nil) and
     (@ASN1_INTEGER_to_BN<>nil) and
@@ -5010,7 +5057,8 @@ begin
     (@IdSSLERR_reason_error_string <> nil) and
     (@IdSSLERR_load_ERR_strings <> nil) and
     (@IdSSLERR_load_crypto_strings <> nil) and
-    (@IdSSLERR_free_strings <> nil);
+    (@IdSSLERR_free_strings <> nil) and
+    (@PEM_write_bio_X509 <> nil);
 
 //  If Result Then IdSslLoadErrorStrings; // we read error strings in context loading dll-s
 end;
@@ -5139,6 +5187,11 @@ Begin
   if @IdSSLERR_free_strings = nil then result := result + ' '+ fn_ERR_free_strings;
  End;
 End;
+
+function BIO_flush(b : PBIO) : TIdC_INT;
+begin
+  Result := BIO_ctrl(b,OPENSSL_BIO_CTRL_FLUSH,0,nil);
+end;
 
 // Author : Gregor Ibich (gregor.ibic@intelicom.si)
 // Pascal translation: Doychin Bondzhev (doichin@5group.com)
