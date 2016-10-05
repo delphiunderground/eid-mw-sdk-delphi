@@ -23615,6 +23615,7 @@ begin
   //DH
   @DH_free := nil;
   //BIO
+  @BIO_set_flags := nil;
   @BIO_new := nil;
   @BIO_push := nil;
   @BIO_free := nil;
