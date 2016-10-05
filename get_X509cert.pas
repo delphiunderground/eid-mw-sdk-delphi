@@ -102,7 +102,7 @@ var
   Serial:PASN1_INTEGER;
   bn:PBIGNUM;
   tmp:PAnsiChar;
-  sSerial:string;
+  sSerial:Ansistring;
 begin
   aX509:=d2i_X509(nil, @pvalue, valueLen);
   if (aX509<>nil) then
