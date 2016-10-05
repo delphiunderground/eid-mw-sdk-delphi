@@ -53,9 +53,11 @@ Index: Lib/Protocols/IdSSLOpenSSLHeaders.pas
    @BIO_new_mem_buf := LoadFunctionCLib(fn_BIO_new_mem_buf);   //Used by Indy
    @BIO_s_mem := LoadFunctionCLib(fn_BIO_s_mem);  //Used by Indy
    @BIO_s_file := LoadFunctionCLib(fn_BIO_s_file,False);
-@@ -23606,7 +23616,9 @@
+@@ -23605,8 +23615,11 @@
+   //DH
    @DH_free := nil;
    //BIO
++  @BIO_set_flags := nil;
    @BIO_new := nil;
 +  @BIO_push := nil;
    @BIO_free := nil;
