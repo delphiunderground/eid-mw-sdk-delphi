@@ -1,4 +1,4 @@
-Patch for current Indy repository to compile X509cert.dpr.
+My patches history for Indy SVN.
 
 To retrieve current Indy SVN :
 
