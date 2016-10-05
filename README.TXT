@@ -2,7 +2,11 @@ eid-mw-sdk-delphi is a translation of C code from
 https://github.com/Fedict/eid-mw/tree/master/doc/sdk/examples/C
 to Delphi.
 
-The main goal is to make the Delphi code as close as possible to
+Initially, the main goal was to make the Delphi code as close as possible to
+the original C code of Fedict.
+
+Now, the goal is rather to make the Delphi code as close as possible
+to https://github.com/linuxunderground/eid-mw-sdk-c, which is also a fork of
 the original C code of Fedict.
 
 It should work with all versions of Delphi and even with 
@@ -11,8 +15,19 @@ Lazarus/FreePascal.
 Any suggestions or improvements are welcome.
 Send them to vincent.hardy.be@gmail.com
 
+
 Homepage:
   https://github.com/delphiunderground/eid-mw-sdk-delphi
+
+
+Indy:
+
+  Required Indy files are embedded with eid-mw-sdk-delphi project.
+  However, to run some .exe files, you need libeay32.dll and ssleay32.dll.
+  Copy/paste these 2 files in the same directory as your eid-mw-sdk-delphi .exe files.
+
+  Theses 2 dll are available at https://indy.fulgan.com/SSL/
+
 
 Third-party files:
 
