@@ -16622,6 +16622,10 @@ var
   BIO_new_mem_buf : function (buf : Pointer; len : TIdC_INT) : PBIO cdecl = nil;
   {$EXTERNALSYM BIO_push}
   BIO_push : function(b: PBIO; append: PBIO): PBIO cdecl = nil;
+  {$EXTERNALSYM BIO_pop}
+  BIO_pop : function(b: PBIO): PBIO cdecl = nil;
+  {$EXTERNALSYM BIO_set_next}
+  BIO_set_next : procedure(b: PBIO; next: PBIO) cdecl = nil;
   {$EXTERNALSYM BIO_free}
   BIO_free : function(bio: PBIO): TIdC_INT cdecl = nil;
   {$EXTERNALSYM BIO_free_all}
@@ -19676,7 +19680,6 @@ them in case we use them later.}
   {CH fn_BUF_MEM_grow = 'BUF_MEM_grow'; }  {Do not localize}
   {CH fn_BUF_strdup = 'BUF_strdup'; }  {Do not localize}
   {CH fn_ERR_load_BUF_strings = 'ERR_load_BUF_strings'; }  {Do not localize}
-  fn_BIO_set_flags = 'BIO_set_flags';  {Do not localize}
   {CH fn_BIO_ctrl_pending = 'BIO_ctrl_pending'; }  {Do not localize}
   {CH fn_BIO_ctrl_wpending = 'BIO_ctrl_wpending'; }  {Do not localize}
   {CH fn_BIO_ctrl_get_write_guarantee = 'BIO_ctrl_get_write_guarantee'; }  {Do not localize}
@@ -19688,6 +19691,7 @@ them in case we use them later.}
   fn_BIO_new_file = 'BIO_new_file';  {Do not localize}
   {CH fn_BIO_new_fp = 'BIO_new_fp'; }  {Do not localize}
   fn_BIO_new = 'BIO_new';  {Do not localize}
+  fn_BIO_set_flags = 'BIO_set_flags';  {Do not localize}
   fn_BIO_new_mem_buf = 'BIO_new_mem_buf'; {Do not localize}
   {CH fn_BIO_set = 'BIO_set'; }  {Do not localize}
   fn_BIO_free = 'BIO_free';  {Do not localize}
@@ -19698,9 +19702,10 @@ them in case we use them later.}
   fn_BIO_ctrl = 'BIO_ctrl';  {Do not localize}
   fn_BIO_ptr_ctrl = 'BIO_ptr_ctrl';   {Do not localize}
   fn_BIO_int_ctrl = 'BIO_int_ctrl';  {Do not localize}
-  fn_BIO_push = 'BIO_push';   {Do not localize}
-  {CH fn_BIO_pop = 'BIO_pop'; }  {Do not localize}
-  fn_BIO_free_all = 'BIO_free_all';   {Do not localize}
+  fn_BIO_push = 'BIO_push';  {Do not localize}
+  fn_BIO_pop = 'BIO_pop';  {Do not localize}
+  fn_BIO_set_next = 'BIO_set_next';  {Do not localize}
+  fn_BIO_free_all = 'BIO_free_all';  {Do not localize}
   {CH fn_BIO_find_type = 'BIO_find_type'; }  {Do not localize}
   {CH fn_BIO_get_retry_BIO = 'BIO_get_retry_BIO'; }  {Do not localize}
   {CH fn_BIO_get_retry_reason = 'BIO_get_retry_reason'; }  {Do not localize}
@@ -22874,19 +22879,21 @@ we have to handle both cases.
   @BN_bn2hex := LoadFunctionCLib(fn_BN_bn2hex,False);
   @BN_set_word := LoadFunctionCLib(fn_BN_set_word,False);
   //BIO
-  @BIO_set_flags := LoadFunctionCLib(fn_BIO_set_flags);
+  @BIO_set_flags := LoadFunctionCLib(fn_BIO_set_flags,False);
   @BIO_new := LoadFunctionCLib(fn_BIO_new);   //Used by Indy
-  @BIO_push := LoadFunctionCLib(fn_BIO_push);
+  @BIO_push := LoadFunctionCLib(fn_BIO_push,False);
+  @BIO_pop := LoadFunctionCLib(fn_BIO_pop,False);
+  @BIO_set_next := LoadFunctionCLib(fn_BIO_set_next,False);
   @BIO_free := LoadFunctionCLib(fn_BIO_free);  //Used by Indy
-  @BIO_free_all := LoadFunctionCLib(fn_BIO_free_all);
+  @BIO_free_all := LoadFunctionCLib(fn_BIO_free_all,False);
   @BIO_new_mem_buf := LoadFunctionCLib(fn_BIO_new_mem_buf);   //Used by Indy
   @BIO_s_mem := LoadFunctionCLib(fn_BIO_s_mem);  //Used by Indy
   @BIO_s_file := LoadFunctionCLib(fn_BIO_s_file,False);
   @BIO_set_ex_data := LoadFunctionCLib(fn_BIO_set_ex_data,False);
   @BIO_get_ex_data := LoadFunctionCLib(fn_BIO_get_ex_data,False);
   @BIO_ctrl := LoadFunctionCLib(fn_BIO_ctrl);
-  @BIO_int_ctrl := LoadFunctionCLib( fn_BIO_int_ctrl, False);
-  @BIO_ptr_ctrl := LoadFunctionCLib( fn_BIO_ptr_ctrl,False );
+  @BIO_int_ctrl := LoadFunctionCLib( fn_BIO_int_ctrl,False);
+  @BIO_ptr_ctrl := LoadFunctionCLib( fn_BIO_ptr_ctrl,False);
   @BIO_new_file := LoadFunctionCLib(fn_BIO_new_file);
   @BIO_puts := LoadFunctionCLib(fn_BIO_puts,False);
   @BIO_read := LoadFunctionCLib(fn_BIO_read,False);
@@ -23618,13 +23625,15 @@ begin
   @BIO_set_flags := nil;
   @BIO_new := nil;
   @BIO_push := nil;
+  @BIO_pop := nil;
+  @BIO_set_next := nil;
   @BIO_free := nil;
   @BIO_free_all := nil;
+  @BIO_new_mem_buf := nil;
   @BIO_s_mem := nil;
   @BIO_s_file := nil;
   @BIO_set_ex_data := nil;
   @BIO_get_ex_data := nil;
-  @BIO_new_mem_buf := nil;
   @BIO_ctrl := nil;
   @BIO_ptr_ctrl := nil;
   @BIO_int_ctrl := nil;
