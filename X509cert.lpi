@@ -10,7 +10,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="get_X509cert"/>
+      <Title Value="X509cert"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -33,9 +33,9 @@
     </RunParams>
     <Units Count="1">
       <Unit0>
-        <Filename Value="get_X509cert.dpr"/>
+        <Filename Value="X509cert.dpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="get_X509cert"/>
+        <UnitName Value="X509cert"/>
       </Unit0>
     </Units>
   </ProjectOptions>
@@ -43,7 +43,7 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="get_X509cert"/>
+      <Filename Value="X509cert"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
