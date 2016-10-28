@@ -171,6 +171,20 @@ begin
                             unload; //ssl
                             writeln(buffer);
                           end;
+
+//Originally, there was no base64 encoding
+//
+//                          if Result=CKR_OK then
+//                          begin
+//                            writeln('The Signature:');
+//                            counter:=0;
+//                            while counter<signLength do
+//                            begin
+//                              write(AnsiChar(signature[counter]));
+//                              inc(counter);
+//                            end;
+//                          end;
+
                         end;
                       end;
                     end;
