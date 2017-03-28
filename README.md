@@ -37,11 +37,11 @@ Theses 2 dll are available at https://indy.fulgan.com/SSL/
 The 2 files below have been released by delphi-jedi.org under Mozilla Public
 License Version 1.1.
 
-### PKCS11T.pas:
+### PKCS11T.pas
 
 https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
   
-### wcrypt2.pas:
+### wcrypt2.pas
 
 You may retrieve the original version of this file here : 
 https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/api/CryptoAPI2.zip?format=raw
