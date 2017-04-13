@@ -43,11 +43,12 @@ https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/ww
   
 ### wcrypt2.pas
 
-You may retrieve the original version of this file here : 
-https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/api/CryptoAPI2.zip?format=raw
+You may retrieve the original version of this file at
+[delphi-jedi.org](https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/api/CryptoAPI2.zip?format=raw)
 
-Howerver, I improved wcrypt2.pas by adding CertGetNameStringW function
-required by cert_registration.pas unit.
+However, I improved wcrypt2.pas by adding
+* CertGetNameStringW function required by cert_registration.pas unit.
+* SHA256, SHA384 and SHA512 capabilities.
+
 Generally speaking, waiting a more official repository, the latest version
 of wcrypt2.pas is in this github repository.
-
