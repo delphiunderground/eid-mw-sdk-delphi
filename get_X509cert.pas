@@ -137,7 +137,7 @@ end;
 
 function Beid_X509Certificate(pFunctions:CK_FUNCTION_LIST_PTR;
                               session_handle:CK_SESSION_HANDLE;
-			      pName:pAnsiChar;
+                              pName:pAnsiChar;
                               ppValue:CK_VOID_PTR;
                               pvalueLen:CK_ULONG_PTR):CK_RV;
 var
@@ -280,7 +280,7 @@ begin
                   begin
                     FreeMem(pCertValue);
                     pCertValue:=nil;
-		  end;
+                  end;
                   //Authentication certificate of eID owner
                   if Beid_X509Certificate(pFunctions,
                                           session_handle,
@@ -296,7 +296,7 @@ begin
                   begin
                     FreeMem(pCertValue);
                     pCertValue:=nil;
-		  end;
+                  end;
                   //Signature certificate of eID owner
                   if Beid_X509Certificate(pFunctions,
                                           session_handle,
