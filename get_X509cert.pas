@@ -1,6 +1,6 @@
 (*
  * https://github.com/delphiunderground/eid-mw-sdk-delphi
- * Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
+ * Copyright (C) 2015-2017 Vincent Hardy <vincent.hardy.be@gmail.com>
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License version
@@ -22,10 +22,10 @@ unit get_X509cert;
 interface
 
 //OpenSC for Windows can be found here :
-//http://sourceforge.net/projects/opensc/files/OpenSC/
+//https://github.com/OpenSC/OpenSC/releases
 
 //PKCS11T.pas can be found here :
-//http://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
+//https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
 
 uses
   PKCS11T;
@@ -46,6 +46,14 @@ uses
 const
   PKCS11DLL = 'beidpkcs11.dll';
 
+
+{$IFNDEF OpenSSL-Delphi}
+procedure OpenSSL_free(ptr: Pointer);
+begin
+  if @CRYPTO_Free <> nil then
+    CRYPTO_free(ptr);
+end;
+{$ENDIF}
 
 procedure Beid_PrintValue_PEM(pValue:CK_BYTE_PTR; valueLen:CK_ULONG);
 const
@@ -86,14 +94,6 @@ begin
   end;
 end;
 
-{$IFNDEF OpenSSL-Delphi}
-procedure OpenSSL_free(ptr: Pointer);
-begin
-  if @CRYPTO_Free <> nil then
-    CRYPTO_free(ptr);
-end;
-{$ENDIF}
-
 procedure X509Info(pValue:pointer; valueLen:Cardinal);
 var
   aX509:PX509;
@@ -104,46 +104,49 @@ var
   tmp:PAnsiChar;
   sSerial:Ansistring;
 begin
-  aX509:=d2i_X509(nil, @pvalue, valueLen);
-  if (aX509<>nil) then
+  if pValue<>nil then
   begin
-    FX509Name:=X509_get_issuer_name(aX509);
-    if FX509Name<>nil then
+    aX509:=d2i_X509(nil, @pvalue, valueLen);
+    if (aX509<>nil) then
     begin
-      Writeln('IssuerName: '+X509_NAME_oneline(FX509Name, PAnsiChar(@LOneLine), SizeOf(LOneLine)));
-    end else
-      Writeln('Unable to find issuer_name');
-
-    Serial:=X509_get_serialNumber(aX509);
-    bn:=ASN1_INTEGER_to_BN(Serial, nil);
-    if bn<>nil then
-    begin
-      tmp:=BN_bn2dec(bn);
-      if tmp<>nil then
+      FX509Name:=X509_get_issuer_name(aX509);
+      if FX509Name<>nil then
       begin
-        sSerial:=tmp;
-        OpenSSL_free(tmp);
-      end else Writeln('unable to convert BN to decimal string');
-      BN_free(bn);
-    end else writeln('Unable to convert ASN1INTEGER to BN');
-    writeln('SerialNumber: '+sSerial);
+        Writeln('IssuerName: '+X509_NAME_oneline(FX509Name, PAnsiChar(@LOneLine), SizeOf(LOneLine)));
+      end else
+        Writeln('Unable to find issuer_name');
 
-    X509_free(aX509);
+      Serial:=X509_get_serialNumber(aX509);
+      bn:=ASN1_INTEGER_to_BN(Serial, nil);
+      if bn<>nil then
+      begin
+        tmp:=BN_bn2dec(bn);
+        if tmp<>nil then
+        begin
+          sSerial:=tmp;
+          OpenSSL_free(tmp);
+        end else Writeln('unable to convert BN to decimal string');
+        BN_free(bn);
+      end else writeln('Unable to convert ASN1INTEGER to BN');
+      writeln('SerialNumber: '+sSerial);
+
+      X509_free(aX509);
+    end;
   end;
 end;
 
-function Beid_X509Certificate(
-               pFunctions:CK_FUNCTION_LIST_PTR;
-               session_handle:CK_SESSION_HANDLE):CK_RV;
+function Beid_X509Certificate(pFunctions:CK_FUNCTION_LIST_PTR;
+                              session_handle:CK_SESSION_HANDLE;
+			      pName:pAnsiChar;
+                              ppValue:CK_VOID_PTR;
+                              pvalueLen:CK_ULONG_PTR):CK_RV;
 var
   searchtemplate:array[1..2] of CK_ATTRIBUTE;
   classType:CK_ULONG;
   hObject:CK_OBJECT_HANDLE;
   ulObjectCount:CK_ULONG;
-  attr_templ:CK_ATTRIBUTE;
-  pValue_:CK_BYTE_PTR;
+  attrtemplate:CK_ATTRIBUTE;
 begin
-  pValue_:=nil;
   classType:=CKO_CERTIFICATE;
   with searchtemplate[1] do
   begin
@@ -154,61 +157,38 @@ begin
   with searchtemplate[2] do
   begin
     _type:=CKA_LABEL;
-    pValue:=pAnsiChar('Signature');
-    ulValueLen:=strlen(pAnsiChar(pValue));
+    pValue:=CK_VOID_PTR(pName);
+    ulValueLen:=strlen(pName);
   end;
-  //initialize the search for the objects with label <filename>
+  //initialize the search for the objects with label <certname>
   Result:=pFunctions^.C_FindObjectsInit(session_handle, @searchtemplate, 2);
-  if (Result<>CKR_OK) then exit;
-
-  //find the first object with class CKO_CERTIFICATE
-  Result:=pFunctions^.C_FindObjects(session_handle,@hObject,1,@ulObjectCount);
-  while ((ulObjectCount=1) and (Result=CKR_OK)) do
+  if (Result=CKR_OK) then
   begin
-    //NULL_PTR as second argument, so the length of value is filled in to retValueLen
-    with attr_templ do
+    //find the first object with class CKO_CERTIFICATE
+    Result:=pFunctions^.C_FindObjects(session_handle,@hObject,1,@ulObjectCount);
+    if ((ulObjectCount=1) and (Result=CKR_OK)) then
     begin
-      _type:=CKA_VALUE;
-      pValue:=nil;
-      ulValueLen:=0;
-    end;
-    //retrieve the length of the data from the object
-    Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attr_templ,1);
-    if ((Result=CKR_OK) and (CK_LONG(attr_templ.ulValueLen)<>-1)) then
-    begin
-      getmem(pValue_,attr_templ.ulValueLen);
-      if pValue_<>nil then
+      //nil as second argument, so the length of value is filled in to retValueLen
+      with attrtemplate do
       begin
-        attr_templ.pValue:=pValue_;
+        _type:=CKA_VALUE;
+        pValue:=nil;
+        ulValueLen:=0;
+      end;
+      //retrieve the length of the data from the object
+      Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
+      if ((Result=CKR_OK) and (CK_LONG(attrtemplate.ulValueLen)<>-1)) then
+      begin
+        getmem(pointer(ppValue^),attrtemplate.ulValueLen);
+        attrtemplate.pValue:=pointer(ppValue^);
         //retrieve the data from the object
-        Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attr_templ,1);
-        if (Result=CKR_OK) then
-        begin
-          {$IFDEF OpenSSL-Delphi}
-          SSL_InitX509;
-          SSL_InitBIO;
-          SSL_InitPEM;
-          SSL_InitASN1;
-          SSL_InitBN;
-          SSL_InitEC;
-          {$ELSE}
-          load;   //SSL loadLib
-          {$ENDIF}
-          //Beid_PrintValue_DER(pValue_,attr_templ.ulValueLen);
-          Beid_PrintValue_PEM(pValue_,attr_templ.ulValueLen);
-          X509Info(pValue_,attr_templ.ulValueLen);
-        end;
-        freemem(pValue_);
-      end else
-      begin
-        //error allocating memory for pValue
-        Result:=CKR_GENERAL_ERROR;
+        Result:=pFunctions^.C_GetAttributeValue(session_handle,hObject,@attrtemplate,1);
+        pvalueLen^:=attrtemplate.ulValueLen;
       end;
     end;
-    Result:=pFunctions^.C_FindObjects(session_handle,@hObject,1,@ulObjectCount);
+    //finalize the search
+    Result:=pFunctions^.C_FindObjectsFinal(session_handle);
   end;
-  //finalize the search
-  Result:=pFunctions^.C_FindObjectsFinal(session_handle);
 end;
 
 function beid_Main:CK_ULONG;
@@ -220,6 +200,8 @@ var
   slot_count:CK_ULONG;
   slotIdx:CK_ULONG;
   session_handle:CK_SESSION_HANDLE;
+  pCertValue:CK_VOID_PTR;
+  CertValueLen:CK_ULONG;
   err:cardinal;
 begin
   Result:=CKR_OK;
@@ -255,7 +237,82 @@ begin
                 Result:=pFunctions^.C_OpenSession(PByteArray(SlotIds)^[slotIdx],CKF_SERIAL_SESSION,nil,nil,@session_handle);
                 if (Result=CKR_OK) then
                 begin
-                  Beid_X509Certificate(pFunctions,session_handle);
+                  {$IFDEF OpenSSL-Delphi}
+                  SSL_InitX509;
+                  SSL_InitBIO;
+                  SSL_InitPEM;
+                  SSL_InitASN1;
+                  SSL_InitBN;
+                  SSL_InitEC;
+                  {$ELSE}
+                  load;   //SSL loadLib
+                  {$ENDIF}
+                  pCertValue:=nil;
+                  //Old Belgium Root CA2 certificate
+                  //Expires on 15/12/2021 but probably already useless now.
+                  if Beid_X509Certificate(pFunctions,
+                                          session_handle,
+                                          pAnsiChar('Root'),
+                                          @pCertValue,
+                                          @CertValueLen)=CKR_OK then
+                  begin
+                    X509Info(pCertValue,CertValueLen);
+                    //Beid_PrintValue_DER(pCertValue,CertValueLen);
+                    Beid_PrintValue_PEM(pCertValue,CertValueLen);
+                  end;
+                  if pCertValue<>nil then
+                  begin
+                    FreeMem(pCertValue);
+                    pCertValue:=nil;
+                  end;
+                  //Citizen CA or Foreigner CA certificate
+                  if Beid_X509Certificate(pFunctions,
+                                          session_handle,
+                                          pAnsiChar('CA'),
+                                          @pCertValue,
+                                          @CertValueLen)=CKR_OK then
+                  begin
+                    X509Info(pCertValue,CertValueLen);
+                    //Beid_PrintValue_DER(pCertValue,CertValueLen);
+                    Beid_PrintValue_PEM(pCertValue,CertValueLen);
+                  end;
+                  if pCertValue<>nil then
+                  begin
+                    FreeMem(pCertValue);
+                    pCertValue:=nil;
+		  end;
+                  //Authentication certificate of eID owner
+                  if Beid_X509Certificate(pFunctions,
+                                          session_handle,
+                                          pAnsiChar('Authentication'),
+                                          @pCertValue,
+                                          @CertValueLen)=CKR_OK then
+                  begin
+                    X509Info(pCertValue,CertValueLen);
+                    //Beid_PrintValue_DER(pCertValue,CertValueLen);
+                    Beid_PrintValue_PEM(pCertValue,CertValueLen);
+                  end;
+                  if pCertValue<>nil then
+                  begin
+                    FreeMem(pCertValue);
+                    pCertValue:=nil;
+		  end;
+                  //Signature certificate of eID owner
+                  if Beid_X509Certificate(pFunctions,
+                                          session_handle,
+                                          pAnsiChar('Signature'),
+                                          @pCertValue,
+                                          @CertValueLen)=CKR_OK then
+                  begin
+                    X509Info(pCertValue,CertValueLen);
+                    //Beid_PrintValue_DER(pCertValue,CertValueLen);
+                    Beid_PrintValue_PEM(pCertValue,CertValueLen);
+                  end;
+                  if pCertValue<>nil then
+                  begin
+                    FreeMem(pCertValue);
+                    pCertValue:=nil;
+                  end;
                 end;
                 //close the session
                 if (Result=CKR_OK)
