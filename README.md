@@ -29,7 +29,7 @@ However, to run some .exe files, you need libeay32.dll and ssleay32.dll.
 Copy/paste these 2 files in the same directory as your eid-mw-sdk-delphi .exe
 files.
 
-Theses 2 dll are available at https://indy.fulgan.com/SSL/
+These 2 dll are available at https://indy.fulgan.com/SSL/
 
 
 ## Third-party files
