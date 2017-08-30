@@ -2965,6 +2965,7 @@ var
   //BIO
   BIO_set_flags : procedure(b: PBIO; flags: integer) cdecl = nil;
   BIO_new : function(_type: PBIO_METHOD): PBIO cdecl = nil;
+  BIO_new_mem_buf : function (buf : Pointer; len : TIdC_INT) : PBIO cdecl = nil;
   BIO_push : function(b: PBIO; append: PBIO): PBIO cdecl = nil;
   BIO_free : function(bio: PBIO): TIdC_INT cdecl = nil;
   BIO_free_all : procedure(bio: PBIO) cdecl = nil;
@@ -3030,6 +3031,7 @@ var
   //void ERR_free_strings(void)
   IdSSLERR_free_strings : procedure; cdecl = nil;
 
+  PEM_read_bio_X509 : function(bp: PBIO; x: PPX509; cb: ppem_password_cb; u: Pointer): PX509 cdecl = nil;
   PEM_write_bio_X509 : function(b: PBIO; x: PX509): TIdC_INT cdecl = nil;
 
 
@@ -3049,7 +3051,6 @@ procedure InitializeRandom;
 implementation
 
 uses
-  Dialogs, { VLK juste pour debug }
   SysUtils,
   {$IFDEF LINUX}
   libc
@@ -3159,6 +3160,7 @@ const
   fn_BIO_new_fp = 'BIO_new_fp';  {Do not localize}
   fn_BIO_set_flags = 'BIO_set_flags';  {Do not localize}
   fn_BIO_new = 'BIO_new';  {Do not localize}
+  fn_BIO_new_mem_buf = 'BIO_new_mem_buf'; {Do not localize}
   fn_BIO_set = 'BIO_set';  {Do not localize}
   fn_BIO_free = 'BIO_free';  {Do not localize}
   fn_BIO_read = 'BIO_read';  {Do not localize}
@@ -4730,8 +4732,6 @@ function LoadFunction(FceName:String):Pointer;
 begin
   FceName := FceName+#0;
   Result := GetProcAddress(hIdSSL, @FceName[1]);
-
-  //if (Result = nil) then ShowMessage('Error loading: ' + FceName);  {Do not localize}
 end;
 
 {$IFDEF LINUX}
@@ -4739,19 +4739,13 @@ function LoadIndyFunction(FceName:String):Pointer;
 begin
   //FceName := FceName+#0;
   Result := GetProcAddress(hIdIndySSL, @FceName[1]);
-//  if (Result = nil) then ShowMessage('Error loading: ' + FceName);  {Do not localize}
 end;
 {$ELSE}
 function LoadIndyFunction(FceName:String):Pointer;
-var
-  p: Integer;
 begin
-  //p := pos('_indy',FceName);
-  //if p>0 then Delete(FceName,p,5);   { VLK enlever le suffixe indy }
   //FceName := FceName+#0;
   //Result := GetProcAddress(hIdSSL, @FceName[1]);
   result := LoadFunction(FceName);
-  //if (Result = nil) then ShowMessage('Error loading: ' + FceName);  {Do not localize}
 end;
 {$ENDIF}
 
@@ -4759,7 +4753,6 @@ function LoadFunctionCLib(FceName:String):Pointer;
 begin
   FceName := FceName+#0;
   Result := GetProcAddress(hIdCrypto, @FceName[1]);
-  //if (Result = nil) then ShowMessage('Error loading: ' + FceName);  {Do not localize}
 end;
 
 // remove this function, it is not used
@@ -4881,6 +4874,7 @@ begin
   @BIO_push := LoadFunctionCLib(fn_BIO_push);
   @BIO_free := LoadFunctionCLib(fn_BIO_free);
   @BIO_free_all := LoadFunctionCLib(fn_BIO_free_all);
+  @BIO_new_mem_buf := LoadFunctionCLib(fn_BIO_new_mem_buf);
   @BIO_f_base64 := LoadFunctionCLib(fn_BIO_f_base64);
   @BIO_s_mem := LoadFunctionCLib(fn_BIO_s_mem);
   @BIO_read := LoadFunctionCLib(fn_BIO_read);
@@ -4931,6 +4925,7 @@ begin
   @IdSSLERR_load_ERR_strings := LoadFunctionCLib( fn_ERR_load_ERR_strings);
   @IdSSLERR_load_crypto_strings := LoadFunctionCLib(fn_ERR_load_crypto_strings);
   @IdSSLERR_free_strings := LoadFunctionCLib(fn_ERR_free_strings);
+  @PEM_read_bio_X509 := LoadFunctionCLib(fn_PEM_read_bio_X509);
   @PEM_write_bio_X509 := LoadFunctionCLib(fn_PEM_write_bio_X509);
 
   result :=
@@ -5011,6 +5006,7 @@ begin
     (@BIO_push<>nil) and
     (@BIO_free<>nil) and
     (@BIO_free_all<>nil) and
+    (@BIO_new_mem_buf<>nil) and
     (@BIO_f_base64<>nil) and
     (@BIO_s_mem<>nil) and
     (@BIO_read<>nil) and
@@ -5058,6 +5054,7 @@ begin
     (@IdSSLERR_load_ERR_strings <> nil) and
     (@IdSSLERR_load_crypto_strings <> nil) and
     (@IdSSLERR_free_strings <> nil) and
+    (@PEM_read_bio_X509 <> nil) and
     (@PEM_write_bio_X509 <> nil);
 
 //  If Result Then IdSslLoadErrorStrings; // we read error strings in context loading dll-s
