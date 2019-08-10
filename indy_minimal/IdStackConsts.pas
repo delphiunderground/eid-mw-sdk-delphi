@@ -390,6 +390,7 @@ const
   Id_SO_DEBUG            =  SO_DEBUG;
   Id_SO_DONTLINGER       =  SO_DONTLINGER;
   Id_SO_DONTROUTE        =  SO_DONTROUTE;
+  Id_SO_ERROR            =  SO_ERROR;
   Id_SO_KEEPALIVE        =  SO_KEEPALIVE;
   Id_SO_LINGER	         =  SO_LINGER;
   Id_SO_OOBINLINE        =  SO_OOBINLINE;
@@ -427,7 +428,9 @@ SocketOptionName.DontFragment;//  Do not fragment IP datagrams.
 {
 SocketOptionName.DropMembership;//  Drop an IP group membership.
 SocketOptionName.DropSourceMembership;//  Drop a source group.
-SocketOptionName.Error;//  Get error status and clear.
+}
+  Id_SO_ERROR            =  SocketOptionName.Error;//  Get error status and clear.
+{
 SocketOptionName.ExclusiveAddressUse;//  Enables a socket to be bound for exclusive access.
 SocketOptionName.Expedited;//  Use expedited data as defined in RFC-1222. This option can be set only once, and once set, cannot be turned off.
 SocketOptionName.HeaderIncluded;//  Indicates application is providing the IP header for outgoing datagrams.
@@ -527,9 +530,11 @@ SocketOptionName.UseLoopback;//  Bypass hardware when possible.
 
   {$IFDEF USE_VCL_POSIX}
   // Shutdown Options
-  Id_SD_Recv = SHUT_RD;
-  Id_SD_Send = SHUT_WR;
-  Id_SD_Both = SHUT_RDWR;
+  // RLebeau 7/23/2019: Delphi 10.2 Tokyo defines SHUT_WR and SHUT_RDWR incorrectly
+  // for Linux! So just define them manually... (Was this ever fixed in a later version?)
+  Id_SD_Recv = 0{SHUT_RD};
+  Id_SD_Send = 1{SHUT_WR};
+  Id_SD_Both = 2{SHUT_RDWR};
   //
   //Temp defines.  They should be in Delphi's Posix.Errno.pas
   ESOCKTNOSUPPORT	= 44;		//* Socket type not supported */
