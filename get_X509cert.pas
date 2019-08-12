@@ -1,6 +1,6 @@
 (*
  * https://github.com/delphiunderground/eid-mw-sdk-delphi
- * Copyright (C) 2015-2017 Vincent Hardy <vincent.hardy.be@gmail.com>
+ * Copyright (C) 2015-2019 Vincent Hardy <vincent.hardy.be@gmail.com>
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License version
@@ -57,7 +57,7 @@ end;
 
 procedure Beid_PrintValue_PEM(pValue:CK_BYTE_PTR; valueLen:CK_ULONG);
 const
-  X509_MAX_Length = 2048;
+  X509_MAX_Length = 4096;
 var
   counter:integer;
   sValue:AnsiString;
