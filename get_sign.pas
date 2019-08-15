@@ -1,6 +1,6 @@
 (*
  * https://github.com/delphiunderground/eid-mw-sdk-delphi
- * Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>.
+ * Copyright (C) 2015-2019 Vincent Hardy <vincent.hardy.be@gmail.com>.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License version
@@ -78,7 +78,7 @@ var
   ulObjectCount:CK_ULONG;       //returns the number of objects found
   hKey:CK_OBJECT_HANDLE;        //retrieve the private key with label 'signature'
   mechanism:CK_MECHANISM;
-  signature:array[0..127] of CK_BYTE;
+  signature:array[0..511] of CK_BYTE;
   signLength:CK_ULONG ;
   counter:cardinal;
   buffer:AnsiString;
@@ -155,36 +155,38 @@ begin
                           pParameter:=nil;
                           ulParameterLen:=0;
                         end;
-                        signLength:=128;
                         //initialize the signature operation
                         Result:=pFunctions^.C_SignInit(session_handle,@mechanism,hKey);
                         if Result=CKR_OK then
                         begin
-                          Result:=pFunctions^.C_Sign(session_handle,CK_BYTE_PTR(textToSign),CK_ULONG(strlen(PAnsiChar(textToSign))),@signature,@signLength);
+                          //get the signature length dynamically
+                          Result:=pFunctions^.C_Sign(session_handle,nil,0,nil,@signLength);
                           if Result=CKR_OK then
                           begin
-                            writeln('The Signature (base64):');
-                            setlength(buffer,255);     //define a maximum memory area
-                            load; //ssl loadlib
-                            counter:=EncodeB64(@signature,signLength,PAnsiChar(buffer),255);
-                            setlength(buffer,counter); //Delphi don't care about #0
-                            unload; //ssl
-                            writeln(buffer);
+                            Result:=pFunctions^.C_Sign(session_handle,CK_BYTE_PTR(textToSign),CK_ULONG(strlen(PAnsiChar(textToSign))),@signature,@signLength);
+                            if Result=CKR_OK then
+                            begin
+                              writeln('The Signature (base64):');
+                              setlength(buffer,800);     //define a maximum memory area
+                              load; //ssl loadlib
+                              counter:=EncodeB64(@signature,signLength,PAnsiChar(buffer),800);
+                              setlength(buffer,counter); //Delphi don't care about #0
+                              unload; //ssl
+                              writeln(buffer);
+                            end;
+  //Originally, there was no base64 encoding
+  //
+  //                          if Result=CKR_OK then
+  //                          begin
+  //                            writeln('The Signature:');
+  //                            counter:=0;
+  //                            while counter<signLength do
+  //                            begin
+  //                              write(AnsiChar(signature[counter]));
+  //                              inc(counter);
+  //                            end;
+  //                          end;
                           end;
-
-//Originally, there was no base64 encoding
-//
-//                          if Result=CKR_OK then
-//                          begin
-//                            writeln('The Signature:');
-//                            counter:=0;
-//                            while counter<signLength do
-//                            begin
-//                              write(AnsiChar(signature[counter]));
-//                              inc(counter);
-//                            end;
-//                          end;
-
                         end;
                       end;
                     end;
