@@ -2,7 +2,7 @@
 
 * eID Middleware Project.
 * Copyright (C) 2009-2010 FedICT.
-* Copyright (C) 2015-2016 Vincent Hardy <vincent.hardy.be@gmail.com>
+* Copyright (C) 2015-2020 Vincent Hardy <vincent.hardy@linuxunderground.be>
 *
 * This is free software; you can redistribute it and/or modify it
 * under the terms of the GNU Lesser General Public License version
@@ -70,12 +70,15 @@ var
   slot_count:CK_ULONG;
   slotIdx:CK_ULONG;
   slotinfo:CK_SLOT_INFO;
+  tokeninfo:CK_TOKEN_INFO;
   slotDescription:array[0..64] of CK_UTF8CHAR;
+  manufacturerID:array[0..32] of CK_UTF8CHAR;
+  _label:array[0..32] of CK_UTF8CHAR;
+  serialNumber:array[0..16] of CK_UTF8CHAR;
   cardInserted:CK_BBOOL;
   flags:CK_FLAGS;
   slotId:CK_SLOT_ID;
 begin
-  Result:=CKR_OK;
   //open the pkcs11 library
   pkcs11Handle:=LoadLibrary(PKCS11DLL);
   if pkcs11Handle>=32 then
@@ -112,8 +115,28 @@ begin
                   move(slotinfo.slotDescription,slotDescription,64);
                   slotDescription[64]:=0;  //make the string null terminated
                   writeln('Card found in reader ',trim(PAnsiChar(@slotDescription[0])));
+                  writeln;
                   //a card is found in the slot
                   cardInserted:=CK_TRUE;
+                  Result:=pFunctions^.C_GetTokenInfo(PByteArray(SlotIds)^[slotIdx],@tokeninfo);
+                  if (Result=CKR_OK) then
+                  begin
+                    move(tokeninfo.manufacturerID,manufacturerID,32);
+                    manufacturerID[32]:=0;  //make the string null terminated
+                    writeln('ManufacturerID : ',trim(PAnsiChar(@manufacturerID[0])));
+                    move(tokeninfo._label,_label,32);
+                    _label[32]:=0;          //make the string null terminated
+                    writeln('Label          : ',trim(PAnsiChar(@_label[0])));
+                    move(tokeninfo.serialNumber,serialNumber,16);
+                    serialNumber[16]:=0;    //make the string null terminated
+                    writeln('Serial number  : ',trim(PAnsiChar(@serialNumber[0])));
+                    case tokeninfo.firmwareVersion.major of
+                    $17:writeln('Applet version : 1.7');
+                    $18:writeln('Applet version : 1.8');
+                    else writeln('Unsupported applet version!');
+                    end;
+                    writeln;
+                  end;
                 end;
               end;
 
