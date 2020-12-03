@@ -39,12 +39,12 @@ License Version 1.1.
 
 ### PKCS11T.pas
 
-https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/
+https://github.com/project-jedi/website/blob/master/delphi-jedi.org/www/files/API_Not_Assessed/SmartcardRSA/pkcs11.zip
   
 ### wcrypt2.pas
 
 You may retrieve the original version of this file at
-[delphi-jedi.org](https://sourceforge.net/p/projectjedi/website/HEAD/tree/trunk/delphi-jedi.org/www/files/api/CryptoAPI2.zip?format=raw)
+https://github.com/project-jedi/website/blob/master/delphi-jedi.org/www/files/api/CryptoAPI2.zip
 
 However, I improved wcrypt2.pas by adding
 * CertGetNameStringW function required by cert_registration.pas unit.
